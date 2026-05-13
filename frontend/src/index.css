@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-page: #FFFFFF;
+  --bg-panel: #F4F5F7;
+  --bg-panel-2: #FAFBFC;
+  --bg-hover: #EEF0F3;
+  --border: #D9DDE3;
+  --border-strong: #0E0E10;
+  --border-soft: #E5E8ED;
+  --text-primary: #0E0E10;
+  --text-secondary: #4F5660;
+  --text-muted: #8A929D;
+  --accent: #E85D04;
+  --accent-dark: #9A3500;
+  --accent-soft: #FFEDD5;
+  --blueprint: #1E5A8C;
+  --blueprint-soft: #DBEAFE;
+  --hivis: #F4C20D;
+  --success: #137333;
+  --success-soft: #D4EDDA;
+  --danger: #B42318;
+  --danger-soft: #FEE2E2;
+}
+
+html, body, #root {
+  background: var(--bg-page);
+  color: var(--text-primary);
+}
+
+body {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  background-image:
+    linear-gradient(to right, rgba(14,14,16,0.025) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(14,14,16,0.025) 1px, transparent 1px);
+  background-size: 32px 32px;
+  min-height: 100vh;
+}
+
+@media (max-width: 640px) { body { background-size: 24px 24px; } }
+
+.font-display { font-family: 'Archivo', sans-serif; }
+.mono, .mono-num { font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+.tabular-nums { font-variant-numeric: tabular-nums; }
+
+.nice-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+.nice-scroll::-webkit-scrollbar-track { background: transparent; }
+.nice-scroll::-webkit-scrollbar-thumb { background: #C9CED5; }
+.nice-scroll::-webkit-scrollbar-thumb:hover { background: #9DA5AF; }
+.nice-scroll { -webkit-overflow-scrolling: touch; }
+
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.rise { animation: rise 0.45s cubic-bezier(.2,.7,.2,1) both; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.fade-in { animation: fadeIn 0.3s ease-out both; }
+
+@keyframes fillBar { from { width: 0; } }
+.bar-fill { animation: fillBar 1.1s cubic-bezier(.2,.8,.2,1) both; }
+
+.lift { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+.kpi-card { transition: border-color .15s ease, box-shadow .15s ease; }
+.proj-card { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+
+/* Touch cihazlarda hover efektleri devre dışı */
+@media (hover: none) {
+  .lift:hover, .proj-card:hover, .kpi-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}
+
+@media (hover: hover) {
+  .lift:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--text-primary); }
+  .kpi-card:hover { box-shadow: 3px 3px 0 var(--text-primary); }
+  .proj-card:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--text-primary); border-color: var(--text-primary); }
+}
+
+.proj-card:active { transform: translate(0,0); box-shadow: 2px 2px 0 var(--text-primary); }
+
+.recharts-cartesian-axis-tick text { fill: var(--text-secondary); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+.recharts-legend-item-text { color: var(--text-secondary) !important; }
+.recharts-tooltip-cursor { fill: rgba(232,93,4,0.05) !important; }
+.recharts-default-tooltip { background: white !important; border: 1px solid var(--text-primary) !important; }
+
+::selection { background: var(--accent); color: white; }
