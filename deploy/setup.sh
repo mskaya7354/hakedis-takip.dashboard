@@ -4,7 +4,7 @@
 set -euo pipefail
 
 APP_DIR=/opt/hakedis
-SHARE_IP="192.168.1.67"         # Windows makinesi
+SHARE_IP="192.168.1.x"          # Windows makinesi IP'si
 SHARE_PATH="RAPOR"               # ← Paylaşım adı (net share ile kontrol et)
 CIFS_USER="Administrator"        # ← Windows kullanıcı adı
 CIFS_PASS="YourWindowsPassword"  # ← Windows şifresi

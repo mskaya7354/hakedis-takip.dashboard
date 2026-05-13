@@ -13,7 +13,7 @@ if _env_file.exists():
             os.environ.setdefault(k.strip(), v.strip())
 
 EXCEL_PATH = Path(os.environ.get("GONODER_EXCEL_PATH", r"Z:\RAPOR\Hakedis Takip.xlsx"))
-UBUNTU_URL = os.environ.get("GONODER_URL", "http://10.41.77.12:8767/api/internal/push-excel")
+UBUNTU_URL = os.environ.get("GONODER_URL", "http://YOUR-SERVER-IP:8767/api/internal/push-excel")
 TOKEN = os.environ.get("GONODER_TOKEN", "")
 INTERVAL = int(os.environ.get("GONODER_INTERVAL", "30"))
 
