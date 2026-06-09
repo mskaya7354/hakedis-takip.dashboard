@@ -159,6 +159,7 @@ export default function PortfolioView({ portfolio, onSelectProject }) {
     toplamGerceklesen, toplamTahsilat, toplamBakiye, toplamBacklog,
     portfoyTamamlanma, portfoyTahsilatOrani, musteriler,
     aktifProjeSayisi, toplamProjeSayisi, toplamHakedisSayisi, toplamZeyilnameSayisi,
+    toplamMaliyet = 0, portfoyKarMarji = 0,
   } = portfolio
 
   const treemapData = projAggs.map(({ p, agg }, i) => ({
@@ -217,10 +218,10 @@ export default function PortfolioView({ portfolio, onSelectProject }) {
           sub={toplamBakiye > 0 ? 'Tahsil edilmemiş alacak' : 'Bakiye sıfır'}
           accent={toplamBakiye > 0 ? '#B42318' : '#137333'}
           icon={ICN.alert({ size: 14, stroke: 2 })} />
-        <KPICard idx={4} label="Müşteri Sayısı"
-          value={fmtNum(musteriler.length)}
-          sub={`${musteriler[0]?.musteri || '—'} (en büyük)`}
-          accent="#E85D04" icon={ICN.folder({ size: 14, stroke: 2 })} />
+        <KPICard idx={4} label="Brüt Kâr Marjı"
+          value={fmtPctNum(portfoyKarMarji * 100, 1)}
+          sub={`Maliyet: ${fmtTRYCompact(toplamMaliyet)}`}
+          accent="#E85D04" icon={ICN.trending({ size: 14, stroke: 2 })} />
       </div>
 
       {/* TREEMAP + COMPARISON */}
