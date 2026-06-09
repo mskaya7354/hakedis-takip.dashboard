@@ -16,6 +16,8 @@ def get_portfolio(repo: ExcelRepository = Depends(get_repo)) -> Portfolio:
             repo.get_projects(),
             repo.get_hakedisler(),
             len(repo.get_zeyilnameler()),
+            repo.get_maliyetler(),
+            repo.get_sgk(),
         )
     except ExcelUnavailableError as e:
         raise HTTPException(status_code=503, detail=str(e))

@@ -15,6 +15,8 @@ def get_project(project_id: int, repo: ExcelRepository = Depends(get_repo)) -> P
         projects = repo.get_projects()
         hakedisler = repo.get_hakedisler()
         zeyilnameler = repo.get_zeyilnameler()
+        maliyetler = repo.get_maliyetler()
+        sgk = repo.get_sgk()
     except ExcelUnavailableError as e:
         raise HTTPException(status_code=503, detail=str(e))
 
@@ -22,8 +24,10 @@ def get_project(project_id: int, repo: ExcelRepository = Depends(get_repo)) -> P
     if project is None:
         raise HTTPException(status_code=404, detail=f"Proje bulunamadı: id={project_id}")
 
+    # zeyilname eşleşmesi: proje kodu veya adı
+    pkey = {project.kod, project.name}
     return ProjectDetailResponse(
         project=project,
-        agg=aggregate_project(project, hakedisler),
-        zeyilnameler=[z for z in zeyilnameler if z.projectName == project.name],
+        agg=aggregate_project(project, hakedisler, maliyetler, sgk),
+        zeyilnameler=[z for z in zeyilnameler if z.projectName in pkey],
     )

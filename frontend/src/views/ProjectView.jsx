@@ -9,16 +9,21 @@ import OverviewTab from '@/views/tabs/OverviewTab'
 import HakedisTab from '@/views/tabs/HakedisTab'
 import ZeyilnameTab from '@/views/tabs/ZeyilnameTab'
 import MaliTab from '@/views/tabs/MaliTab'
+import MaliyetSgkTab from '@/views/tabs/MaliyetSgkTab'
 
 export default function ProjectView({ p, agg, zeyilnameler, onBack }) {
   const [tab, setTab] = useState('overview')
-  const projZeyilnameler = (zeyilnameler || []).filter(z => z.projectName === p.name)
+  // Zeyilname projectName = Proje_Kodu veya Proje_Adi olabilir (backend zaten filtreli gönderir)
+  const projZeyilnameler = (zeyilnameler || []).filter(
+    z => z.projectName === p.name || z.projectName === p.kod
+  )
 
   const tabs = [
     { id: 'overview',   label: 'Genel Bakış' },
     { id: 'hakedis',    label: 'Hakedişler', count: agg.rows.length },
     { id: 'zeyilname',  label: 'Zeyilnameler', count: projZeyilnameler.length },
     { id: 'mali',       label: 'Mali Analiz' },
+    { id: 'maliyet',    label: 'Maliyet & SGK' },
   ]
 
   return (
@@ -40,8 +45,14 @@ export default function ProjectView({ p, agg, zeyilnameler, onBack }) {
 
       {/* Project header */}
       <div className="border-l-4 pl-4 sm:pl-6" style={{ borderColor: 'var(--accent)' }}>
-        <div className="mono text-[10px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--text-muted)' }}>
-          {p.kod || '—'}
+        <div className="mono text-[10px] tracking-[0.2em] uppercase mb-1 flex items-center gap-2" style={{ color: 'var(--text-muted)' }}>
+          <span>{p.kod || '—'}</span>
+          {p.paraBirimi && p.paraBirimi !== 'TRY' && (
+            <span className="px-1.5 py-0.5 font-bold tracking-normal"
+                  style={{ background: '#1E5A8C', color: 'white' }}>
+              {p.paraBirimi} · kur {p.guncelKur?.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          )}
         </div>
         <h1 className="font-display text-[28px] sm:text-[40px] font-extrabold tracking-tight leading-none">
           {p.name}
@@ -91,6 +102,7 @@ export default function ProjectView({ p, agg, zeyilnameler, onBack }) {
         {tab === 'hakedis'   && <HakedisTab p={p} agg={agg} />}
         {tab === 'zeyilname' && <ZeyilnameTab p={p} zeyilnameler={projZeyilnameler} />}
         {tab === 'mali'      && <MaliTab p={p} agg={agg} />}
+        {tab === 'maliyet'   && <MaliyetSgkTab p={p} agg={agg} />}
       </div>
     </div>
   )
