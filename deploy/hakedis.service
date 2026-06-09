@@ -1,8 +1,6 @@
 [Unit]
 Description=Hakedis Takip API (FastAPI/Uvicorn)
 After=network.target
-Wants=mnt-hakedis_rapor.mount
-After=mnt-hakedis_rapor.mount
 
 [Service]
 Type=simple
@@ -12,7 +10,7 @@ WorkingDirectory=/opt/hakedis/backend
 EnvironmentFile=/opt/hakedis/backend/.env
 ExecStart=/opt/hakedis/backend/venv/bin/uvicorn app.main:app \
     --host 127.0.0.1 \
-    --port 8000 \
+    --port __UVICORN_PORT__ \
     --workers 1 \
     --no-access-log
 Restart=on-failure

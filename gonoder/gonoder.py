@@ -12,8 +12,8 @@ if _env_file.exists():
             k, v = line.split("=", 1)
             os.environ.setdefault(k.strip(), v.strip())
 
-EXCEL_PATH = Path(os.environ.get("GONODER_EXCEL_PATH", r"Z:\RAPOR\Hakedis Takip.xlsx"))
-UBUNTU_URL = os.environ.get("GONODER_URL", "http://YOUR-SERVER-IP:8767/api/internal/push-excel")
+EXCEL_PATH = Path(os.environ.get("GONODER_EXCEL_PATH", r"C:\Users\Administrator\Desktop\Hakedis_Takip.xlsm"))
+UBUNTU_URL = os.environ.get("GONODER_URL", "http://10.41.77.12:8080/api/internal/push-excel")
 TOKEN = os.environ.get("GONODER_TOKEN", "")
 INTERVAL = int(os.environ.get("GONODER_INTERVAL", "30"))
 
@@ -25,7 +25,7 @@ def push():
         data = EXCEL_PATH.read_bytes()
         r = requests.post(
             UBUNTU_URL,
-            files={"file": ("hakedis.xlsx", data)},
+            files={"file": ("Hakedis_Takip.xlsm", data)},
             headers={"x-push-token": TOKEN},
             timeout=30,
         )
