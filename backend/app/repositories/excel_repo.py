@@ -27,6 +27,7 @@ from typing import Optional
 import pandas as pd
 
 from app.models.schemas import (
+    CariHareket,
     HakedisRaw,
     MaliyetRaw,
     Project,
@@ -44,15 +45,19 @@ _TR_AYLAR = [
 
 # Kalem adları (Hareketler[Kalem]) → pivot alanı
 _KALEM_BEDEL = "BEDELİ"
+_KALEM_KDV_BEYAN = "KDV BEYAN (6/10)"
 _KALEM_STOPAJ = "STOPAJ"
 _KALEM_AVANS_KES = "AVANS KESİNTİSİ"
 _KALEM_TEMINAT_KES = "TEMİNAT KESİNTİSİ"
 _KALEM_DIGER_KES = "DİĞER KESİNTİ"
 _KALEM_DIGER_IADE = "DİĞER KESİNTİ İADESİ"
 _KALEM_TAHSILAT = "TAHSİLATI"
+_KALEM_AVANS_GIRIS = "AVANS GİRİŞİ"
+_KALEM_AVANS_MAHSUP = "AVANS MAHSUBU"
 
 _HESAP_ANA = "Ana Cari"
 _HESAP_SOZLESME = "Sözleşme"
+_HESAP_AVANS = "Avans"
 
 
 @dataclass
@@ -128,6 +133,7 @@ class ExcelRepository:
         self._zeyilnameler: list[Zeyilname] = []
         self._maliyetler: list[MaliyetRaw] = []
         self._sgk: list[SGKRaw] = []
+        self._cari_hareketler: dict[str, list[CariHareket]] = {}  # proje kodu → hareketler
 
         self.health = RepoHealth(source_path=str(excel_path))
 
@@ -152,6 +158,11 @@ class ExcelRepository:
     def get_sgk(self) -> list[SGKRaw]:
         self._ensure_fresh()
         return self._sgk
+
+    def get_cari_hareketler(self, project_kod: str) -> list[CariHareket]:
+        """Bir projenin tüm hareketleri (yürüyen bakiye calc tarafında eklenir)."""
+        self._ensure_fresh()
+        return self._cari_hareketler.get(project_kod, [])
 
     def invalidate(self) -> None:
         with self._lock:
@@ -235,7 +246,7 @@ class ExcelRepository:
 
         # Hareketler — sadece tablo kolonları (Z dropdown kaynağını dışla)
         hareket_cols = [
-            "Proje_Kodu", "Hesap_Tipi", "Hakedis_No", "Kalem",
+            "Proje_Kodu", "Hesap_Tipi", "Hakedis_No", "Kalem", "Aciklama",
             "Tarih", "Kur", "Borc", "Alacak", "Borc_TL", "Alacak_TL",
         ]
         df_h = pd.read_excel(xls, sheet_name="Hareketler")
@@ -247,6 +258,9 @@ class ExcelRepository:
 
         # Hakedişler (Hesap_Tipi = Ana Cari, Hakedis_No dolu → pivot)
         self._hakedisler = self._parse_hakedisler(df_h)
+
+        # Cari hareketler (TÜM hareketler, proje kodu → liste)
+        self._cari_hareketler = self._parse_cari_hareketler(df_h)
 
         # Maliyetler
         self._maliyetler = self._parse_maliyetler(xls)
@@ -305,6 +319,7 @@ class ExcelRepository:
                 return _f(grp[grp["Kalem"] == kalem]["Alacak_TL"].sum())
 
             matrah = kalem_borc(_KALEM_BEDEL)
+            kdv_beyan = kalem_borc(_KALEM_KDV_BEYAN)
             stopaj = kalem_alacak(_KALEM_STOPAJ)
             avans_kes = kalem_alacak(_KALEM_AVANS_KES)
             teminat_kes = kalem_alacak(_KALEM_TEMINAT_KES)
@@ -324,6 +339,7 @@ class ExcelRepository:
                 donem=_donem_from_date(tarih_ts),
                 tarih=_date_str(tarih_ts),
                 matrah=matrah,
+                kdvBeyan=kdv_beyan,
                 stopaj=stopaj,
                 avansKesinti=avans_kes,
                 nakitTeminat=teminat_kes,
@@ -332,6 +348,30 @@ class ExcelRepository:
                 notlar="",
             ))
         return out
+
+    def _parse_cari_hareketler(self, df_h: pd.DataFrame) -> dict[str, list[CariHareket]]:
+        """Tüm hareketleri proje koduna göre grupla (tarih sıralı, bakiye calc'ta)."""
+        result: dict[str, list[CariHareket]] = {}
+        # tarihe göre sırala (yürüyen bakiye için)
+        df = df_h.copy()
+        if "Tarih" in df.columns:
+            df = df.sort_values("Tarih", na_position="last")
+        for _, row in df.iterrows():
+            kod = _s(row.get("Proje_Kodu"))
+            if not kod:
+                continue
+            kalem = _s(row.get("Kalem"))
+            aciklama = _s(row.get("Aciklama")) or kalem or _s(row.get("Hesap_Tipi"))
+            result.setdefault(kod, []).append(CariHareket(
+                tarih=_date_str(row.get("Tarih")),
+                hesapTipi=_s(row.get("Hesap_Tipi")),
+                kalem=kalem,
+                aciklama=aciklama,
+                borc=_f(row.get("Borc_TL")),
+                alacak=_f(row.get("Alacak_TL")),
+                bakiye=0.0,
+            ))
+        return result
 
     def _parse_maliyetler(self, xls) -> list[MaliyetRaw]:
         try:

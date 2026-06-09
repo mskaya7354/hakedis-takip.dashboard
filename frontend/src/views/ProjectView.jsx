@@ -10,8 +10,9 @@ import HakedisTab from '@/views/tabs/HakedisTab'
 import ZeyilnameTab from '@/views/tabs/ZeyilnameTab'
 import MaliTab from '@/views/tabs/MaliTab'
 import MaliyetSgkTab from '@/views/tabs/MaliyetSgkTab'
+import CariEkstreTab from '@/views/tabs/CariEkstreTab'
 
-export default function ProjectView({ p, agg, zeyilnameler, onBack }) {
+export default function ProjectView({ p, agg, zeyilnameler, hareketler, onBack }) {
   const [tab, setTab] = useState('overview')
   // Zeyilname projectName = Proje_Kodu veya Proje_Adi olabilir (backend zaten filtreli gönderir)
   const projZeyilnameler = (zeyilnameler || []).filter(
@@ -24,6 +25,7 @@ export default function ProjectView({ p, agg, zeyilnameler, onBack }) {
     { id: 'zeyilname',  label: 'Zeyilnameler', count: projZeyilnameler.length },
     { id: 'mali',       label: 'Mali Analiz' },
     { id: 'maliyet',    label: 'Maliyet & SGK' },
+    { id: 'ekstre',     label: 'Cari Ekstre', count: (hareketler || []).length },
   ]
 
   return (
@@ -103,6 +105,7 @@ export default function ProjectView({ p, agg, zeyilnameler, onBack }) {
         {tab === 'zeyilname' && <ZeyilnameTab p={p} zeyilnameler={projZeyilnameler} />}
         {tab === 'mali'      && <MaliTab p={p} agg={agg} />}
         {tab === 'maliyet'   && <MaliyetSgkTab p={p} agg={agg} />}
+        {tab === 'ekstre'    && <CariEkstreTab p={p} hareketler={hareketler} />}
       </div>
     </div>
   )

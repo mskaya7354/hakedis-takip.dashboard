@@ -66,12 +66,31 @@ class HakedisRaw(BaseModel):
     donem: str
     tarih: str
     matrah: float                 # TL — Σ BEDELİ (Borc_TL)
+    kdvBeyan: float = 0.0         # TL — Excel "KDV BEYAN (6/10)" (gerçek, varsa)
     stopaj: float = 0.0           # TL — Excel STOPAJ (gerçek)
     avansKesinti: float = 0.0     # TL — Excel AVANS KESİNTİSİ
     nakitTeminat: float = 0.0     # TL — Excel TEMİNAT KESİNTİSİ
     digerKesintiler: float = 0.0  # TL — Excel DİĞER KESİNTİ − DİĞER KESİNTİ İADESİ
     tahsilEdilen: float = 0.0     # TL — Excel TAHSİLATI
     notlar: str = ""
+
+
+class CariHareket(BaseModel):
+    """Cari ekstre satırı — her Hesap_Tipi / her Kalem dahil (yürüyen bakiyeyle)."""
+    tarih: str
+    hesapTipi: str
+    kalem: str
+    aciklama: str
+    borc: float = 0.0        # TL (Borc_TL)
+    alacak: float = 0.0      # TL (Alacak_TL)
+    bakiye: float = 0.0      # yürüyen bakiye (Σ borç − Σ alacak)
+
+
+class AvansHesap(BaseModel):
+    """Avans hesabı — verilen, mahsup edilen, kalan."""
+    verilenAvans: float = 0.0    # TL — Hesap_Tipi=Avans, AVANS GİRİŞİ
+    mahsupEdilen: float = 0.0    # TL — AVANS KESİNTİSİ + AVANS MAHSUBU
+    kalanAvans: float = 0.0      # verilen − mahsup
 
 
 # ── Hesaplanmış modeller ──────────────────────────────────────────────────────
@@ -129,6 +148,7 @@ class ProjectAggregate(BaseModel):
     brutKar: float = 0.0           # toplamMatrah − toplamMaliyet
     karMarji: float = 0.0          # brutKar / toplamMatrah
     sgk: Optional[SGKUyum] = None
+    avans: Optional[AvansHesap] = None
 
 
 class CustomerBreakdown(BaseModel):
@@ -169,3 +189,4 @@ class ProjectDetailResponse(BaseModel):
     project: Project
     agg: ProjectAggregate
     zeyilnameler: list[Zeyilname]
+    hareketler: list[CariHareket] = []   # cari ekstre (yürüyen bakiyeyle)

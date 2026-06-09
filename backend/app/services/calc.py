@@ -11,6 +11,8 @@ Burada tam KDV ve tevkifat oranlardan türetilir (Excel beyanıyla tutarlı):
   tevkifat = kdv × tevkifatOrani
 """
 from app.models.schemas import (
+    AvansHesap,
+    CariHareket,
     CustomerBreakdown,
     HakedisComputed,
     HakedisRaw,
@@ -42,9 +44,16 @@ def _donem_key(donem: str) -> tuple[int, int]:
 
 
 def calc_hakedis(h: HakedisRaw, p: Project) -> HakedisComputed:
-    """Excel'den gelen ham hakedişe KDV/tevkifat/ödenecek/bakiye türet."""
+    """Excel'den gelen ham hakedişe KDV/tevkifat/ödenecek/bakiye türet.
+
+    KDV: tam KDV oranla (matrah×kdvOrani). Tevkifat → Excel'de "KDV BEYAN (6/10)"
+    girilmişse tam KDV − beyan (gerçek); yoksa orandan (kdv×tevkifatOrani).
+    """
     kdv = h.matrah * p.kdvOrani
-    tevkifat = kdv * p.tevkifatOrani
+    if h.kdvBeyan > 0:
+        tevkifat = max(0.0, kdv - h.kdvBeyan)
+    else:
+        tevkifat = kdv * p.tevkifatOrani
     fatura_toplami = h.matrah + kdv - tevkifat - h.stopaj
     odenecek = fatura_toplami - h.avansKesinti - h.nakitTeminat - (h.digerKesintiler or 0.0)
     bakiye = odenecek - (h.tahsilEdilen or 0.0)
@@ -57,6 +66,35 @@ def calc_hakedis(h: HakedisRaw, p: Project) -> HakedisComputed:
         odenecek=odenecek,
         bakiye=bakiye,
     )
+
+
+def _build_avans(rows: list[HakedisComputed], cari_hareketler: list[CariHareket]) -> AvansHesap:
+    """Avans hesabı: verilen (Avans/AVANS GİRİŞİ) − mahsup (hakediş avans kes. + AVANS MAHSUBU)."""
+    verilen = sum(
+        h.borc for h in cari_hareketler
+        if h.hesapTipi == "Avans" and "GİRİŞ" in h.kalem.upper()
+    )
+    mahsup_ayri = sum(
+        h.alacak for h in cari_hareketler
+        if h.hesapTipi == "Avans" and "MAHSUP" in h.kalem.upper()
+    )
+    mahsup_hakedis = sum(r.avansKesinti for r in rows)
+    mahsup = mahsup_hakedis + mahsup_ayri
+    return AvansHesap(
+        verilenAvans=verilen,
+        mahsupEdilen=mahsup,
+        kalanAvans=verilen - mahsup,
+    )
+
+
+def build_cari_ekstre(cari_hareketler: list[CariHareket]) -> list[CariHareket]:
+    """Tarih sıralı hareketlere yürüyen bakiye ekle (Σ borç − Σ alacak)."""
+    bakiye = 0.0
+    out: list[CariHareket] = []
+    for h in cari_hareketler:
+        bakiye += h.borc - h.alacak
+        out.append(h.model_copy(update={"bakiye": bakiye}))
+    return out
 
 
 def _build_maliyet(p: Project, all_maliyetler: list[MaliyetRaw]) -> tuple[list[MaliyetKategori], float]:
@@ -100,9 +138,11 @@ def aggregate_project(
     all_hakedisler: list[HakedisRaw],
     all_maliyetler: list[MaliyetRaw] | None = None,
     all_sgk: list[SGKRaw] | None = None,
+    cari_hareketler: list[CariHareket] | None = None,
 ) -> ProjectAggregate:
     all_maliyetler = all_maliyetler or []
     all_sgk = all_sgk or []
+    cari_hareketler = cari_hareketler or []
 
     rows = sorted(
         [calc_hakedis(h, p) for h in all_hakedisler if h.projectName == (p.kod or p.name) or h.projectName == p.name],
@@ -122,6 +162,7 @@ def aggregate_project(
     brut_kar = toplam_matrah - toplam_maliyet
     kar_marji = brut_kar / toplam_matrah if toplam_matrah > 0 else 0.0
     sgk = _build_sgk(p, toplam_matrah, all_sgk)
+    avans = _build_avans(rows, cari_hareketler)
 
     return ProjectAggregate(
         rows=rows,
@@ -146,6 +187,7 @@ def aggregate_project(
         brutKar=brut_kar,
         karMarji=kar_marji,
         sgk=sgk,
+        avans=avans,
     )
 
 

@@ -67,24 +67,39 @@ export default function MaliTab({ p, agg }) {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Avans mahsup bullet */}
-      <Panel title="Avans Mahsup İlerlemesi"
-             sub={`Planlanan toplam avans kesintisi: ${fmtTRY0(agg.planlananAvansToplam)}`}
+      {/* Avans hesabı: gerçek verilen avans (Excel) + mahsup + kalan */}
+      <Panel title="Avans Hesabı"
+             sub={agg.avans
+               ? `Verilen avans: ${fmtTRY0(agg.avans.verilenAvans)} · Mahsup edilen: ${fmtTRY0(agg.avans.mahsupEdilen)}`
+               : `Planlanan toplam avans kesintisi: ${fmtTRY0(agg.planlananAvansToplam)}`}
              idx={1}>
-        {p.avansOrani > 0 ? (
-          <BulletChart value={agg.toplamAvansKesinti} target={agg.planlananAvansToplam}
-                       max={Math.max(agg.planlananAvansToplam, agg.toplamAvansKesinti) * 1.1 || 1}
-                       label="MAHSUP ORANI" />
+        {agg.avans && agg.avans.verilenAvans > 0 ? (
+          <>
+            <BulletChart value={agg.avans.mahsupEdilen} target={agg.avans.verilenAvans}
+                         max={Math.max(agg.avans.verilenAvans, agg.avans.mahsupEdilen) * 1.1 || 1}
+                         label="MAHSUP ORANI (verilen avansa göre)" />
+            <div className="grid grid-cols-3 gap-3 mt-4 pt-3 border-t border-dashed" style={{ borderColor: 'var(--border)' }}>
+              <MiniStat label="Verilen Avans" value={fmtTRY0(agg.avans.verilenAvans)} accent="var(--text-primary)" />
+              <MiniStat label="Mahsup Edilen" value={fmtTRY0(agg.avans.mahsupEdilen)} accent="#E85D04" />
+              <MiniStat label="Kalan Avans" value={fmtTRY0(agg.avans.kalanAvans)} accent={agg.avans.kalanAvans > 0 ? '#1E5A8C' : '#137333'} />
+            </div>
+          </>
+        ) : p.avansOrani > 0 ? (
+          <>
+            <BulletChart value={agg.toplamAvansKesinti} target={agg.planlananAvansToplam}
+                         max={Math.max(agg.planlananAvansToplam, agg.toplamAvansKesinti) * 1.1 || 1}
+                         label="MAHSUP ORANI (planlanana göre)" />
+            <div className="grid grid-cols-3 gap-3 mt-4 pt-3 border-t border-dashed" style={{ borderColor: 'var(--border)' }}>
+              <MiniStat label="Planlanan Avans" value={fmtTRY0(agg.planlananAvansToplam)} accent="var(--text-primary)" />
+              <MiniStat label="Mahsup Edilen" value={fmtTRY0(agg.toplamAvansKesinti)} accent="#E85D04" />
+              <MiniStat label="Kalan" value={fmtTRY0(Math.max(0, agg.planlananAvansToplam - agg.toplamAvansKesinti))} accent="var(--text-secondary)" />
+            </div>
+          </>
         ) : (
           <div className="text-[12px]" style={{ color: 'var(--text-muted)' }}>
-            Bu proje için avans oranı tanımlanmamış.
+            Bu proje için avans tanımlanmamış.
           </div>
         )}
-        <div className="grid grid-cols-3 gap-3 mt-4 pt-3 border-t border-dashed" style={{ borderColor: 'var(--border)' }}>
-          <MiniStat label="Planlanan Avans" value={fmtTRY0(agg.planlananAvansToplam)} accent="var(--text-primary)" />
-          <MiniStat label="Mahsup Edilen" value={fmtTRY0(agg.toplamAvansKesinti)} accent="#E85D04" />
-          <MiniStat label="Kalan" value={fmtTRY0(Math.max(0, agg.planlananAvansToplam - agg.toplamAvansKesinti))} accent="var(--text-secondary)" />
-        </div>
       </Panel>
 
       {/* Two donuts */}

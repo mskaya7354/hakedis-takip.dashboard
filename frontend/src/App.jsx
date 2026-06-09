@@ -62,16 +62,21 @@ export default function App() {
   const [loginLoading, setLoginLoading] = useState(false)
 
   // All hooks must be called unconditionally — before any early returns
+  // refetchInterval: Excel kaydedildiğinde ~30sn içinde dashboard otomatik güncellenir
   const portfolioQ = useQuery({
     queryKey: ['portfolio'],
     queryFn: fetchPortfolio,
     enabled: authed && view === 'portfolio',
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false,
   })
 
   const projectQ = useQuery({
     queryKey: ['project', activeProjectId],
     queryFn: ({ signal }) => fetchProject(activeProjectId, { signal }),
     enabled: authed && !!activeProjectId,
+    refetchInterval: 30000,
+    refetchIntervalInBackground: false,
   })
 
   const activeQ = view === 'portfolio' ? portfolioQ : projectQ
@@ -145,6 +150,7 @@ export default function App() {
               p={projectQ.data.project}
               agg={projectQ.data.agg}
               zeyilnameler={projectQ.data.zeyilnameler}
+              hareketler={projectQ.data.hareketler}
               onBack={onBack}
             />
           </>
