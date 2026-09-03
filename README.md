@@ -21,7 +21,7 @@ Gerçek bir iş probleminden doğdu: Excel dosyası bir kullanıcıdaydı, yöne
 ## Özellikler
 
 - **Portföy görünümü** — tüm projelerin KPI'ları, treemap ve karşılaştırma grafikleri
-- **Proje detay** — 4 sekme: Hakediş özeti, finansal kırılım (waterfall + donut), zeyilname tarihçesi, dönem bazlı analiz
+- **Proje detay** — 6 sekme: Genel Bakış, Hakedişler, Zeyilnameler, Mali Analiz (waterfall + donut), Maliyet & SGK, Cari Ekstre (ana cari/sözleşme/avans hareketleri, yürüyen bakiye)
 - **Otomatik yenileme** — 30 sn polling, Excel değiştiğinde dashboard'a yansır
 - **JWT auth** — tek paylaşımlı kimlik, 8 saat oturum
 - **Çoklu deploy modu** — Windows (tek makinede) veya Ubuntu (push mimarisi)
@@ -32,13 +32,14 @@ Gerçek bir iş probleminden doğdu: Excel dosyası bir kullanıcıdaydı, yöne
 ┌──────────────────┐                ┌──────────────────────────────┐
 │  Windows PC      │                │  Ubuntu Sunucu (7/24)        │
 │                  │                │                              │
-│  Z:\RAPOR\       │  HTTP POST     │  FastAPI :8767               │
-│  Hakedis.xlsx    │ ─────────────► │  ├─ /api/auth/login          │
-│        │         │  (her 30 sn)   │  ├─ /api/portfolio           │
-│        ▼         │                │  ├─ /api/project/{id}        │
-│  gonoder.py      │                │  └─ /api/internal/push-excel │
-│  (mtime watcher) │                │                              │
-└──────────────────┘                │  Nginx → React build         │
+│  Z:\RAPOR\       │  HTTP POST     │  Nginx :8080                 │
+│  Hakedis.xlsx    │ ─────────────► │                              │
+│        │         │  (her 30 sn)   │  ├─ /api/auth/login          │
+│        ▼         │                │  ├─ /api/portfolio           │
+│  gonoder.py      │                │  ├─ /api/project/{id}        │
+│  (mtime watcher) │                │  └─ /api/internal/push-excel │
+└──────────────────┘                │  → uvicorn :8000 (localhost) │
+                                    │  → React build (statik)      │
                                     └──────────────────────────────┘
                                               ▲
                                               │ LAN
