@@ -14,7 +14,7 @@ Gerçek bir iş probleminden doğdu: Excel dosyası bir kullanıcıdaydı, yöne
 
 ![Proje Kartları](docs/screenshots/project-cards.png)
 
-**Proje detay** — 4 sekme: genel bakış, hakedişler, zeyilnameler, mali analiz. Sözleşme bedeli akışı (ilk → zeyilname → güncel) ve dönem bazlı hakediş grafiği.
+**Proje detay** — 6 sekme: genel bakış, hakedişler, zeyilnameler, mali analiz, maliyet & SGK, cari ekstre. Sözleşme bedeli akışı (ilk → zeyilname → güncel) ve dönem bazlı hakediş grafiği. *(Ekran görüntüsü eski 4-sekme sürümünden — Maliyet & SGK ve Cari Ekstre sonradan eklendi, henüz güncellenmedi.)*
 
 ![Proje Detay](docs/screenshots/project-detail.png)
 
